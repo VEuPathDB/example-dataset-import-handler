@@ -8,7 +8,7 @@ Live example: https://github.com/VEuPathDB/dataset-handler-biom
 
 === Your script.
 
-The script that should be executed to handle incoming datasets should be may be
+The script that should be executed to handle incoming datasets may be
 in any language, but must be executable by a CLI call.
 
 By default Python2 is included, but other desired languages will have to be 
