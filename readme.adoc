@@ -1,11 +1,13 @@
 = Dataset Import Handler Example
 :source-highlighter: highlightjs
+:url-gh-org: https://github.com/VEuPathDB
+:url-gh-pub: https://veupathdb.github.io
 
 == Important Links
 
-* Live example: https://github.com/VEuPathDB/dataset-handler-biom
-* Script Expectations: https://github.com/VEuPathDB/util-user-dataset-handler-server#script-expectations
-* Config.yml Variables: https://veupathdb.github.io/util-user-dataset-handler-server
+* Live example: {url-gh-org}/dataset-handler-biom
+* Script Expectations: {url-gh-org}/util-user-dataset-handler-server#script-expectations
+* Config.yml Variables: {url-gh-pub}/util-user-dataset-handler-server
 
 == Usage
 
@@ -29,12 +31,13 @@ The `config.yml` file is used to tell the HTTP server that will be running in
 the container how to execute your script via a command line call.
 
 A full reference for the syntax of this file can be found
-https://veupathdb.github.io/util-user-dataset-handler-server/[here].
+{url-gh-pub}/util-user-dataset-handler-server/[here].
 
 The config file allows injecting variables into the CLI call allowing 
 customization of the call based on the input HTTP request to the server.
 
-A full, working example can be found https://github.com/VEuPathDB/dataset-handler-biom/blob/master/config.yml[here].
+A full, working example can be found
+{url-gh-org}/dataset-handler-biom/blob/master/config.yml[here].
 
 
 === Jenkinsfile
@@ -94,11 +97,86 @@ RUN pip install git+https://github.com/VEuPathDB/dataset-handler-python-base \
 
 In the above example:
 
-. The project local `lib` directory is copied into the
-Docker image under the root path `/opt/handler/lib`.
-. The project local `bin` directory is copied into the
-Docker image under the root path `/opt/handler/bin`
-. The VEuPathDB python project `dataset-handler-python-base`
-is installed.
-. The executable python script included in the project is
-marked as executable.
+. The project local `lib` directory is copied into the Docker image under the
+  root path `/opt/handler/lib`.
+. The project local `bin` directory is copied into the Docker image under the
+  root path `/opt/handler/bin`
+. The VEuPathDB python project `dataset-handler-python-base` is installed.
+. The executable python script included in the project is marked as executable.
+
+
+
+=== Deployment
+
+Deploying a new handler to the
+link:{url-gh-org}/service-user-dataset-import[service-user-dataset-import] stack.
+
+==== 1. Publishing the Handler Image
+
+Publishing a handler image is the process of getting a Docker image for the
+import handler built and pushed to the
+link:https://hub.docker.com/u/veupathdb[VEuPathDB group on DockerHub].
+
+Once published, it is available for deployment to VEuPathDB servers by our
+automated in-house processes which consume built images from DockerHub.
+
+To get the handler image built and published you need to perform the following
+tasks:
+
+. <<Jenkinsfile,Configure the new handler's Jenkinsfile>>
+. <<_1_a,Have the project build added to Jenkins>>
+. <<_1_b,Have the image registered with DockerHub>>
+
+[#_1_a]
+===== 1.a. Add the job to Jenkins
+
+If the build has not yet been added to Jenkins, then the Systems team will have
+to be alerted to create the build.
+
+This can be done by creating a RedMine issue including a link to the repo of the
+image to build.
+
+[#_1_b]
+===== 1.b. Register the image with DockerHub
+
+As part of having the build registered with Jenkins, the new image will need to
+be registered with DockerHub.  If the image is _not_ registered with DockerHub,
+the Jenkins build will be unable to publish the built image.
+
+Having the new image registered with DockerHub is something that can only be
+done by the Systems team.  They can be alerted by creating a RedMine issue for
+the registration of the image in DockerHub, the ticket should include the image
+name as defined in the `Jenkinsfile`.
+
+
+==== 2. Adding the Handler to the Importer
+
+Handler images that are already being built and published to DockerHub may be
+added to the
+link:{url-gh-org}/service-user-dataset-import[service-user-dataset-import] stack 
+by performing the following steps:
+
+. Edit the `service-user-dataset-import`
+  link:{url-gh-org}/service-user-dataset-import/blob/master/config.json[`config.json`]
+  file to add the new import handler configuration.  This file is what registers
+  an import handler for use with the service.
+
+. Edit the `service-user-dataset-import`
+  link:{url-gh-org}/service-user-dataset-import/blob/master/docker-compose.yml[`docker-compose.yml`]
+  file to add the new import handler image to the Docker Compose stack.
+
+. Create a new Git tag on the
+  link:{url-gh-org}/service-user-dataset-import[service-user-dataset-import]
+  repo, bumping the feature segment of the version number.
+
+
+==== 3. Final Deployment
+
+Assuming you have followed the above steps, and that the builds are working in
+Jenkins, the final deployment of the new handler can be performed by:
+
+. Add a new item to the link:{url-gh-org}/tagger[tagger]
+  link:{url-gh-org}/tagger/blob/main/versions.yml[`versions.yml`] file for the
+  new import handler image.
+. Update the entries for the user-dataset-import-service in the `tagger`
+  `versions.yml` file with the new Git tag version.
